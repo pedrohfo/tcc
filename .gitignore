@@ -1,0 +1,18 @@
+# --- Backend (Django) ---
+*.pyc
+__pycache__/
+db.sqlite3
+.env
+/static/
+/media/__pycache__/
+
+# --- Frontend (Node/React/Vite) ---
+node_modules/
+dist/
+build/
+
+# --- Geral ---
+*.log
+.DS_Store
+.idea/
+.vscode/

@@ -5,6 +5,7 @@ db.sqlite3
 .env
 /static/
 /media/__pycache__/
+.venv
 
 # --- Frontend (Node/React/Vite) ---
 node_modules/

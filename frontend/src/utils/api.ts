@@ -54,7 +54,7 @@ api.interceptors.response.use(
           if (typeof window !== "undefined") window.location.href = "/";
           return Promise.reject(error);
         }
-        const r = await axios.post(`${API_BASE}/auth/token/refresh/`, { refresh });
+        const r = await axios.post(`${API_BASE}/auth/refresh/`, { refresh });
         const newAccess = r.data?.access;
         if (newAccess) {
           localStorage.setItem("access", newAccess);

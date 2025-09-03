@@ -22,7 +22,7 @@ export default function RegisterPage() {
       });
       toast.success("Conta criada com sucesso!");
       router.push("/login");
-    } catch (err: any) {
+    } catch {
       toast.error("Erro ao criar conta.");
     }
   };

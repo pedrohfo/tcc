@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import api, { saveTokens } from "@/utils/api";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,13 +30,17 @@ export default function LoginPage() {
       } else {
         toast.error("Resposta do servidor inválida.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Tenta extrair erros DRF
-      const detail =
-        err?.response?.data?.detail ||
-        err?.response?.data?.non_field_errors?.[0] ||
-        "Credenciais inválidas.";
-      toast.error(String(detail), { duration: 7000 });
+      if (axios.isAxiosError(err)) {
+        const detail =
+          err?.response?.data?.detail ||
+          err?.response?.data?.non_field_errors?.[0] ||
+          "Credenciais inválidas.";
+        toast.error(String(detail), { duration: 7000 });
+      } else {
+        toast.error("Erro de Login!")
+      }
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,5 @@
 // src/utils/api.ts
-import axios from "axios";
+import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
 const API_BASE = "http://localhost:8000/api";
 
@@ -41,12 +41,17 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (res) => res,
-  async (error) => {
-    const original = error.config as any;
+  async (err: unknown) => {
+    if (!axios.isAxiosError(err)) {
+      return Promise.reject(err);
+    }
 
-    // Tenta refresh quando 401 e ainda não tentou
-    if (error?.response?.status === 401 && !original?._retry) {
+    const error = err as AxiosError;
+    const original = error.config as AxiosRequestConfig & { _retry?: boolean };
+
+    if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
+
       try {
         const refresh = localStorage.getItem("refresh");
         if (!refresh) {
@@ -54,6 +59,7 @@ api.interceptors.response.use(
           if (typeof window !== "undefined") window.location.href = "/";
           return Promise.reject(error);
         }
+
         const r = await axios.post(`${API_BASE}/auth/refresh/`, { refresh });
         const newAccess = r.data?.access;
         if (newAccess) {
@@ -67,6 +73,7 @@ api.interceptors.response.use(
         if (typeof window !== "undefined") window.location.href = "/";
       }
     }
+
     return Promise.reject(error);
   }
 );

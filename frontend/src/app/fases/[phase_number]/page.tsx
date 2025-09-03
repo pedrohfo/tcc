@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import api, { clearTokens } from '@/utils/api'
 import toast from 'react-hot-toast'
+import axios from 'axios'
 
 interface Alternative {
   id: number
@@ -52,20 +53,22 @@ export default function PhasePage() {
         ])
         setPhase(phaseRes.data)
         setProfile(profileRes.data)
-      } catch (err: any) {
-      if (err?.response?.status === 403) {
-        // Caso a API diga que a fase está bloqueada
-        toast.error('Esta fase ainda não está desbloqueada.')
-      } else if (err?.response?.status === 401) {
-        // Token inválido ou expirado → desloga
-        toast.error('Sessão expirada. Faça login novamente.')
-        clearTokens()
-        router.push('/login')
-      } else {
-        // Outro erro genérico
-        toast.error('Erro ao carregar fase.')
-      }
-    } finally {
+      } catch (err: unknown) {
+          if (axios.isAxiosError(err)) {
+            if (err.response?.status === 403) {
+              toast.error('Esta fase ainda não está desbloqueada.')
+            } else if (err.response?.status === 401) {
+              toast.error('Sessão expirada. Faça login novamente.')
+              clearTokens()
+              router.push('/login')
+            } else {
+              toast.error('Erro ao carregar fase.')
+            }
+          } else {
+            // Qualquer outro erro
+            toast.error('Erro desconhecido ao carregar fase.')
+          }
+        } finally {
       setLoading(false)
     }
   }
@@ -98,8 +101,11 @@ export default function PhasePage() {
       } else {
         toast.error('Resposta incorreta.')
       }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.detail || 'Erro ao enviar resposta.')
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err))
+        toast.error(err?.response?.data?.detail || 'Erro ao enviar resposta.')
+      else
+        toast.error('Erro ao enviar resposta.')
     } finally {
       setSubmitting(false)
     }
@@ -125,7 +131,7 @@ export default function PhasePage() {
       setShowHint(hintRes.data.hint)
       setProfile({ ...profile, crystals: profile.crystals - 30 })
       toast.success('Dica liberada! 30 cristais foram consumidos.')
-    } catch (err) {
+    } catch {
       toast.error('Erro ao gerar dica.')
     } finally {
       setSubmitting(false)

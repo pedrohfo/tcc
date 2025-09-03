@@ -38,7 +38,7 @@ export default function FasesPage() {
         ])
         setFases(fasesRes.data)
         setProfile(profileRes.data)
-      } catch (err) {
+      } catch {
         toast.error('Erro ao carregar dados. Faça login novamente.')
         clearTokens()
         router.push('/login')
@@ -81,9 +81,9 @@ export default function FasesPage() {
 
       // Redireciona para a fase
       router.push(`/fases/${fase.phase_number}`)
-    } catch (err: any) {
-      if (err.response?.data?.detail) {
-        toast.error(err.response.data.detail)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message)
       } else {
         toast.error('Erro ao entrar na fase.')
       }

@@ -47,6 +47,9 @@ export default function PhasePage() {
       }
 
       try {
+        await api.post(`/game/phases/${phase_number}/enter/`, {}, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
         const [phaseRes, profileRes] = await Promise.all([
           api.get(`/game/phases/${phase_number}/`, { headers: { Authorization: `Bearer ${token}` } }),
           api.get('/game/profile/', { headers: { Authorization: `Bearer ${token}` } }),

@@ -69,9 +69,9 @@ export default function FasesPage() {
 
     try {
       // 🔹 Chama a API para gastar energia e entrar
-      await api.post(`/game/phases/${fase.phase_number}/enter/`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      // await api.post(`/game/phases/${fase.phase_number}/enter/`, {}, {
+      //   headers: { Authorization: `Bearer ${token}` },
+      // })
 
       // Atualiza o perfil (energia/cistais)
       const profileRes = await api.get('/game/profile/', {

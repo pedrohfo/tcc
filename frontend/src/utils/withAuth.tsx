@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { clearTokens } from '@/utils/api'
 
 export function withAuth(Component: React.ComponentType) {
   return function Authenticated(props: any) {
@@ -9,8 +10,14 @@ export function withAuth(Component: React.ComponentType) {
 
     useEffect(() => {
       if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('token')
-        if (!token) router.push('/')
+        const access = localStorage.getItem('access')
+        const refresh = localStorage.getItem('refresh')
+
+        // Se não tiver tokens, redireciona
+        if (!access || !refresh) {
+          clearTokens()
+          router.push('/login')
+        }
       }
     }, [router])
 

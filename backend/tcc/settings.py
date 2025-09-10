@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'rest_framework',              # DRF
-    'rest_framework.authtoken',    # TokenAuth
     'dj_rest_auth',                # dj-rest-auth
     'dj_rest_auth.registration',   # endpoints de registration
     'rest_framework_simplejwt',
@@ -141,6 +140,11 @@ REST_FRAMEWORK = {
     ),
 }
 
+REST_AUTH = {
+    'USE_JWT': True,
+    'TOKEN_MODEL': None,
+}
+
 REST_AUTH_REGISTER_SERIALIZERS = {
     'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',
 }
@@ -153,6 +157,9 @@ SIMPLE_JWT = {
 }
 
 REST_USE_JWT = True
+# Para versões novas do dj-rest-auth
+DJRESTAUTH_TOKEN_MODEL = None
+TOKEN_MODEL = None
 
 # django-allauth settings
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']

@@ -6,8 +6,8 @@ from questions.serializers import QuestionSerializer
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['user', 'crystals', 'energy']
-        read_only_fields = ['user', 'crystals', 'energy']
+        fields = ['user', 'crystals', 'energy', 'correct_answers', 'wrong_answers']
+        read_only_fields = ['user', 'crystals', 'energy', 'correct_answers', 'wrong_answers']
 
 
 class UserPhaseSerializer(serializers.ModelSerializer):

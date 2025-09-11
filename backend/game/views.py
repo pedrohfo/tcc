@@ -2,9 +2,12 @@ from rest_framework import generics, permissions, status, exceptions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
+from django.db.models.functions import Rank
 
 from tcc import settings
 from .models import HintHistory, UserProfile, UserPhase
+from django.db.models import F, Window
 from .serializers import UserProfileSerializer, UserPhaseSerializer
 from questions.models import Alternative, Question
 import openai
@@ -207,9 +210,45 @@ class AnswerPhaseView(APIView):
             phase.save()
 
             profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.correct_answers += 1
             profile.crystals += 10  # ganha 10 cristais por acerto
             profile.save()
 
             return Response({"correct": True, "crystals": profile.crystals})
         else:
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.wrong_answers += 1
+            profile.save()
             return Response({"correct": False, "crystals": UserProfile.objects.get(user=user).crystals})
+
+class RankingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # 🔹 Ranking dos top 10
+        top_users = (
+            UserProfile.objects
+            .annotate(score_calc=F("correct_answers") - F("wrong_answers"))
+            .order_by("-score_calc")[:10]
+            .values("user__username", "correct_answers", "wrong_answers", "score_calc")
+        )
+
+        # 🔹 Ranking do usuário autenticado
+        user_ranking = (
+            UserProfile.objects
+            .annotate(
+                score_calc=F("correct_answers") - F("wrong_answers"),
+                rank=Window(
+                    expression=Rank(),
+                    order_by=F("score_calc").desc()
+                )
+            )
+            .filter(user=request.user)
+            .values("user__username", "correct_answers", "wrong_answers", "score_calc", "rank")
+            .first()
+        )
+
+        return Response({
+            "top_users": list(top_users),
+            "current_user": user_ranking
+        })

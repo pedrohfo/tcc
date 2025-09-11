@@ -20,9 +20,15 @@ class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     crystals = models.IntegerField(default=100)
     energy = models.IntegerField(default=5)
+    correct_answers = models.PositiveIntegerField(default=0)
+    wrong_answers = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"{self.user.username} - {self.crystals} cristais"
+    
+    @property
+    def score(self):
+        return self.correct_answers - self.wrong_answers
 
 
 class UserPhase(models.Model):

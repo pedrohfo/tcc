@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models.functions import Rank
 
 from tcc import settings
-from .models import HintHistory, UserProfile, UserPhase
+from .models import Achievement, HintHistory, UserAchievement, UserProfile, UserPhase
 from django.db.models import F, Window
 from .serializers import UserProfileSerializer, UserPhaseSerializer
 from questions.models import Alternative, Question
@@ -14,6 +14,30 @@ import openai
 
 client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
 
+class UserAchievementsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        # Todas conquistas cadastradas
+        all_achievements = Achievement.objects.all()
+
+        # IDs das conquistas já obtidas
+        earned_ids = UserAchievement.objects.filter(user=user).values_list("achievement_id", flat=True)
+
+        # Monta resposta
+        data = [
+            {
+                "id": ach.id,
+                "name": ach.name,
+                "description": ach.description,
+                "earned": ach.id in earned_ids,
+            }
+            for ach in all_achievements
+        ]
+
+        return Response(data)
 
 class HintView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -21,6 +45,11 @@ class HintView(APIView):
     def post(self, request, phase_number):
         user = request.user
         profile = user.userprofile
+
+        achievement, _ = Achievement.objects.get_or_create(
+            name="Hasta la vista, baby", defaults={"description": "Pediu ajuda do ChatGPT em uma questão!"}
+        )
+        UserAchievement.objects.get_or_create(user=request.user, achievement=achievement)
 
         # 1. verifica se já existe dica salva para esta fase
         existing_hint = HintHistory.objects.filter(user=user, phase_number=phase_number).first()
@@ -214,6 +243,12 @@ class AnswerPhaseView(APIView):
             profile.crystals += 10  # ganha 10 cristais por acerto
             profile.save()
 
+            if profile.correct_answers >= 5:
+                achievement, _ = Achievement.objects.get_or_create(
+                    name="Penta", defaults={"description": "Acertou 5 questões!"}
+                )
+                UserAchievement.objects.get_or_create(user=request.user, achievement=achievement)
+
             return Response({"correct": True, "crystals": profile.crystals})
         else:
             profile, _ = UserProfile.objects.get_or_create(user=user)
@@ -247,6 +282,15 @@ class RankingView(APIView):
             .values("user__username", "correct_answers", "wrong_answers", "score_calc", "rank")
             .first()
         )
+
+        if user_ranking and user_ranking["rank"] <= 10:
+            achievement, _ = Achievement.objects.get_or_create(
+                name="Competitivo",
+                defaults={"description": "Entrou no Top 10 do ranking!"}
+            )
+            UserAchievement.objects.get_or_create(
+                user=request.user, achievement=achievement
+            )
 
         return Response({
             "top_users": list(top_users),

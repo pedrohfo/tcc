@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     RankingView,
+    UserAchievementsView,
     UserProfileView,
     InitializeUserPhasesView,
     UserPhaseListView,
@@ -19,4 +20,5 @@ urlpatterns = [
     path('phases/<int:phase_number>/answer/', AnswerPhaseView.as_view(), name='answer-phase'),
     path("hint/<int:phase_number>/", HintView.as_view(), name="phase-hint"),
     path("ranking/", RankingView.as_view(), name="ranking"),
+    path("achievements/", UserAchievementsView.as_view(), name="user-achievements"),
 ]

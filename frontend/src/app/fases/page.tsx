@@ -113,6 +113,12 @@ export default function FasesPage() {
           🏆 Ranking
         </button>
         <button
+          onClick={() => router.push('/conquistas')}
+          className="bg-yellow-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded"
+        >
+          🏅 Conquistas
+        </button>
+        <button
           onClick={handleLogout}
           className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
         >

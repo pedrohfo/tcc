@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from game.models import UserPhase, Question
+from game.models import HintHistory, UserPhase, Question
 import random
 
 class Command(BaseCommand):
@@ -17,6 +17,7 @@ class Command(BaseCommand):
         for user in users:
             # apaga as fases antigas
             UserPhase.objects.filter(user=user).delete()
+            HintHistory.objects.filter(user=user).delete()
 
             # sorteia 10 questões aleatórias para esse usuário
             selected_questions = random.sample(questions, 10)

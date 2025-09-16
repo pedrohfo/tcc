@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
 from questions.models import Question
@@ -37,9 +38,10 @@ class HintHistory(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     crystals = models.IntegerField(default=100)
-    energy = models.IntegerField(default=5)
+    energy = models.IntegerField(default=7)
     correct_answers = models.PositiveIntegerField(default=0)
     wrong_answers = models.PositiveIntegerField(default=0)
+    last_energy_update = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.user.username} - {self.crystals} cristais"

@@ -12,6 +12,8 @@ from .serializers import UserProfileSerializer, UserPhaseSerializer
 from questions.models import Alternative, Question
 import openai
 
+from django.utils import timezone
+
 client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
 
 class UserAchievementsView(APIView):
@@ -190,7 +192,22 @@ class UserProfileView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+
+        # ⚡ Atualização da energia
+        now = timezone.now()
+        if profile.last_energy_update:
+            elapsed = now - profile.last_energy_update
+            recovered = elapsed.days  # 1 energia por dia inteiro
+            if recovered > 0:
+                profile.energy = min(profile.energy + recovered, 7)  # limite máximo = 7
+                profile.last_energy_update = now
+                profile.save()
+        else:
+            # caso seja a primeira vez
+            profile.last_energy_update = now
+            profile.save()
+
         return profile
 
 

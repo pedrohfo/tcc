@@ -2,9 +2,11 @@ from django.core.management.base import BaseCommand
 from questions.models import Test, Question, Alternative
 import re
 from PyPDF2 import PdfReader
+import os
+from django.conf import settings
 
-QUESTIONS_PDF = 'C:/Users/pedro/Downloads/Enem-Extractor/Enem-Extractor/2023_PV_impresso_D1_CD1.pdf'
-ANSWERS_PDF = 'C:/Users/pedro/Downloads/Enem-Extractor/Enem-Extractor/2023_GB_impresso_D1_CD1.pdf'
+QUESTIONS_PDF = os.path.join(settings.BASE_DIR, '2023_PV_impresso_D1_CD1.pdf')
+ANSWERS_PDF = os.path.join(settings.BASE_DIR, '2023_GB_impresso_D1_CD1.pdf')
 
 def clean_string(s):
     return s.replace("\n", " ").replace("\t", " ").replace("  ", " ")

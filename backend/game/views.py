@@ -273,43 +273,42 @@ class AnswerPhaseView(APIView):
             profile.save()
             return Response({"correct": False, "crystals": UserProfile.objects.get(user=user).crystals})
 
+from django.db.models import F
+
 class RankingView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # 🔹 Ranking dos top 10
-        top_users = (
+        # 🔹 MESMA query para ambos - consistência total
+        users_ranked = (
             UserProfile.objects
             .annotate(score_calc=F("correct_answers") - F("wrong_answers"))
-            .order_by("-score_calc")[:10]
+            .order_by("-score_calc", "-correct_answers", "wrong_answers")  # MESMA ordenação
             .values("user__username", "correct_answers", "wrong_answers", "score_calc")
         )
 
-        # 🔹 Ranking do usuário autenticado
-        user_ranking = (
-            UserProfile.objects
-            .annotate(
-                score_calc=F("correct_answers") - F("wrong_answers"),
-                rank=Window(
-                    expression=Rank(),
-                    order_by=F("score_calc").desc()
-                )
-            )
-            .filter(user=request.user)
-            .values("user__username", "correct_answers", "wrong_answers", "score_calc", "rank")
-            .first()
-        )
+        # 🔹 Top 10 (já está ordenado)
+        top_users = list(users_ranked[:10])
 
-        if user_ranking and user_ranking["rank"] <= 10:
-            achievement, _ = Achievement.objects.get_or_create(
-                name="Competitivo",
-                defaults={"description": "Entrou no Top 10 do ranking!"}
-            )
-            UserAchievement.objects.get_or_create(
-                user=request.user, achievement=achievement
-            )
+        # 🔹 Encontrar a posição do usuário atual na lista COMPLETA
+        all_users = list(users_ranked)
+        
+        # Procura o índice do usuário atual
+        user_index = None
+        for i, user in enumerate(all_users):
+            if user['user__username'] == request.user.username:
+                user_index = i
+                break
+
+        # 🔹 Posição = índice + 1
+        current_user_data = None
+        if user_index is not None:
+            current_user_data = {
+                **all_users[user_index],
+                "rank": user_index + 1  # Posição real baseada na ordenação
+            }
 
         return Response({
-            "top_users": list(top_users),
-            "current_user": user_ranking
+            "top_users": top_users,
+            "current_user": current_user_data
         })
